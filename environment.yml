@@ -1,0 +1,23 @@
+# conda env create -f environment.yml 
+name: alzheimer
+channels:
+  - defaults
+  - conda-forge
+
+dependencies:
+  - python=3.12
+  - pip
+  - pip:                    # pip packages inside conda env
+    - matplotlib
+    - numpy
+    - pandas
+    - pillow
+    - tqdm
+    - wandb
+    - sh
+    - torch
+    - lightning
+    - torchmetrics
+    - nipype
+    - SimpleITK
+    - dltk

@@ -1,0 +1,32 @@
+project:
+  name: alzheimer_project
+  seed: 10
+  device: mps                                           # cpu, cuda, mps
+
+paths:
+  data: datasets
+  data_split: data_split
+  # data_processed: data/processed
+  
+  # mri_tesla: 1.5                                      # 1.5T, 3T
+  adni_annual: datasets/ADNI1-Annual_2_Yr_3T/
+  adni_baseline: datasets/ADNI1-Baseline_3T/
+  adni_complete1: datasets/ADNI1-Complete_1Yr_1.5T
+  adni_complete2: datasets/ADNI1-Complete_2Yr_1.5T
+  adni_complete3: datasets/ADNI1-Complete_3Yr_1.5T
+  adni_screen: datasets/ADNI1-Screening_1.5T
+
+
+training:
+  ckpt_path: ckpt
+  model_type: more_advance                              # base, advance, more_advance
+  wandb_proj: Alzheimer_Project1
+  wandb_run: Alzheimer_U-NET
+  epochs: 6
+  resume: False                                         # True, False
+  wandb_runID: 677cfm81                                 # LAST_RUN_ID is discovered once the project is created
+  last_epoch: 6                                         # Epoch to resume the training
+  add_epoch: 5                                          # Additional training epochs
+  batch_size: 1
+  grad_accumulation: 64                                 # 1 to avoid gradient accomulation
+  learning_rate: 0.0001
