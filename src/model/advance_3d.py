@@ -126,38 +126,40 @@ class UNetAlzheimer3D(pl.LightningModule):
         return x[:, :, y1:y2, x1:x2, z1:z2]
     
     def forward(self, x, sex, age):
-        features = self.l_conv1(x) # ; print("Conv1: ", features.shape)
-        skip_1 = self.l_conv2(features) # ; print("Skip1: ", skip_1.shape) # skip1
-        skip_2 = self.l_conv3(skip_1) # ; print("Skip2: ", skip_2.shape) # skip2
-        skip_3 = self.l_conv4(skip_2) # ; print("Skip3: ", skip_3.shape) # skip3
+        features = self.l_conv1(x)                                  # ; print("Conv1: ", features.shape)
+        skip_1 = self.l_conv2(features)                             # ; print("Skip1: ", skip_1.shape) # skip1
+        skip_2 = self.l_conv3(skip_1)                               # ; print("Skip2: ", skip_2.shape) # skip2
+        skip_3 = self.l_conv4(skip_2)                               # ; print("Skip3: ", skip_3.shape) # skip3
 
-        features = self.conv5(skip_3) # ; print("Bottom Convolution: ", features.shape)
+        features = self.conv5(skip_3)                               # ; print("Bottom Convolution: ", features.shape)
         
-        skip_3 = self.feature_crop(skip_3, shape=features.shape) # ; print(skip_3.shape)
-        sup_3 = self.r_conv4(torch.cat([features, skip_3], dim=1)) # ; print("Sup3: ", sup_3.shape) # sup_3
+        skip_3 = self.feature_crop(skip_3, shape=features.shape)    # ; print(skip_3.shape)
+        sup_3 = self.r_conv4(torch.cat([features, skip_3], dim=1))  # ; print("Sup3: ", sup_3.shape) # sup_3
 
-        skip_2 = self.feature_crop(skip_2, shape=sup_3.shape) # ; print(skip_2.shape)
-        sup_2 = self.r_conv3(torch.cat([sup_3, skip_2], dim=1)) # ; print("Sup2: ", sup_2.shape) # sup_2
+        skip_2 = self.feature_crop(skip_2, shape=sup_3.shape)       # ; print(skip_2.shape)
+        sup_2 = self.r_conv3(torch.cat([sup_3, skip_2], dim=1))     # ; print("Sup2: ", sup_2.shape) # sup_2
 
-        skip_1 = self.feature_crop(skip_1, shape=sup_2.shape) # ; print(skip_1.shape)
-        sup_1 = self.r_conv2(torch.cat([sup_2, skip_1], dim=1)) # ; print("Sup1: ", sup_1.shape) # sup_1
+        skip_1 = self.feature_crop(skip_1, shape=sup_2.shape)       # ; print(skip_1.shape)
+        sup_1 = self.r_conv2(torch.cat([sup_2, skip_1], dim=1))     # ; print("Sup1: ", sup_1.shape) # sup_1
 
         final_sup = sup_1.clone()
         
         sup_1 = F.avg_pool3d(sup_1, kernel_size=sup_1.shape[1])
-        sup_1 = self.dropout(sup_1) # ; print(sup_1.shape)
+        sup_1 = self.dropout(sup_1)                                 # ; print(sup_1.shape)
         
         sup_2 = F.avg_pool3d(sup_2, kernel_size=sup_2.shape[1])
         sup_2 = F.pad(sup_2, (0, (sup_1.size(4) - sup_2.size(4)),
                               0, (sup_1.size(3) - sup_2.size(3)),
-                              0, (sup_1.size(2) - sup_2.size(2))), mode="replicate") # Pad the tensor to match
-        sup_2 = self.dropout(sup_2) # ; print(sup_2.shape)
+                              0, (sup_1.size(2) - sup_2.size(2))),
+                              mode="replicate") # Pad the tensor to match
+        sup_2 = self.dropout(sup_2)                                 # ; print(sup_2.shape)
 
         sup_3 = F.avg_pool3d(sup_3, kernel_size=sup_3.shape[1])
         sup_3 = F.pad(sup_3, (0, (sup_1.size(4) - sup_3.size(4)),
                               0, (sup_1.size(3) - sup_3.size(3)),
-                              0, (sup_1.size(2) - sup_3.size(2))), mode="replicate") # Pad the tensor to match
-        sup_3 = self.dropout(sup_3) # ; print(sup_3.shape)
+                              0, (sup_1.size(2) - sup_3.size(2))),
+                              mode="replicate") # Pad the tensor to match
+        sup_3 = self.dropout(sup_3)                                 # ; print(sup_3.shape)
 
         features_sup_3 = sup_3.clone()
         features_sup_2 = sup_2.clone()
@@ -173,10 +175,10 @@ class UNetAlzheimer3D(pl.LightningModule):
         age = torch.repeat_interleave(age, 7, dim=-1);  sex = torch.repeat_interleave(sex, 7, dim=-1)
 
         
-        final = torch.cat([sup_1, sup_2, sup_3], dim=1) # ; print("Final Output Shape: ", final.shape)
+        final = torch.cat([sup_1, sup_2, sup_3], dim=1)             # ; print("Final Output Shape: ", final.shape)
         
         res = torch.cat((final, age, sex),dim=1)
-        disease_out = self.disease_detector(res) # ; print("Out Shape: ", disease_out.shape); # print(disease_out)
+        disease_out = self.disease_detector(res)                    # ; print("Out Shape: ", disease_out.shape); # print(disease_out)
 
         return disease_out, features_sup_3, features_sup_2, features_sup_1
     
@@ -189,12 +191,12 @@ class UNetAlzheimer3D(pl.LightningModule):
         if len(input_img.shape) < 2: input_img = input_img.unsqueeze(dim=0)
         labels = batch["Disease"]
         if len(labels.shape) < 2: labels = labels.unsqueeze(dim=0)
-        labels = torch.argmax(labels, dim=-1) # ; print("-- Target shape: ", labels.shape); print(labels)
+        labels = torch.argmax(labels, dim=-1)
 
         sex = batch["Sex"]
         age = batch["Age"]
 
-        output_pred, brain_features_3, brain_features_2, brain_features_1 = self(input_img, sex=sex, age=age)
+        output_pred, _, _, _ = self(input_img, sex=sex, age=age)
 
         # Disease Classification
         output_pred = output_pred.squeeze()
@@ -203,8 +205,8 @@ class UNetAlzheimer3D(pl.LightningModule):
         if len(output_pred.shape) < 2: output_pred = output_pred.unsqueeze(dim=0)
         # print("- Output probability distribution shape: ", output_pred.shape); print(output_pred)
 
-        train_loss = self.loss_function(output_pred, labels) # ; print("  - Disease Training Loss: ", train_loss)
-        train_f1 = self.disease_accuracy(output_pred, labels) # ; print("  - Disease Training Acc: ", train_f1)
+        train_loss = self.loss_function(output_pred, labels)    # ; print("  - Disease Training Loss: ", train_loss)
+        train_f1 = self.disease_accuracy(output_pred, labels)   # ; print("  - Disease Training Acc: ", train_f1)
         self.train_disease_confusion_matrix.update(output_pred, labels) # Training Confusion Matrix
         
         self.log('train_loss', train_loss, on_step=True, on_epoch=True, prog_bar=True)
@@ -218,12 +220,12 @@ class UNetAlzheimer3D(pl.LightningModule):
         if len(input_img.shape) < 2: input_img = input_img.unsqueeze(dim=0)
         labels = batch["Disease"]
         if len(labels.shape) < 2: labels.unsqueeze(dim=0)
-        labels = labels = torch.argmax(labels, dim=-1); # print("-- Target shape: ", labels.shape); print(labels)
+        labels = labels = torch.argmax(labels, dim=-1)
 
         sex = batch["Sex"]
         age = batch["Age"]
 
-        output_pred, brain_features_3, brain_features_2, brain_features_1 = self(input_img, sex=sex, age=age)
+        output_pred, _, _, _ = self(input_img, sex=sex, age=age)
 
         # Disease Classification
         output_pred = output_pred.squeeze()
@@ -232,8 +234,8 @@ class UNetAlzheimer3D(pl.LightningModule):
         if len(output_pred.shape) < 2: output_pred = output_pred.unsqueeze(dim=0)
         # print("- Output probability distribution shape: ", output_pred.shape); print(output_pred)
 
-        valid_loss = self.loss_function(output_pred, labels); # print("  - Disease Training Loss: ", valid_loss)
-        valid_f1 = self.disease_accuracy(output_pred, labels); # print("  - Disease Training Acc: ", valid_f1)
+        valid_loss = self.loss_function(output_pred, labels);   # print("  - Disease Training Loss: ", valid_loss)
+        valid_f1 = self.disease_accuracy(output_pred, labels);  # print("  - Disease Training Acc: ", valid_f1)
         self.valid_disease_confusion_matrix.update(output_pred, labels) # Training Confusion Matrix
         
         self.log('valid_loss', valid_loss, on_step=True, on_epoch=True, prog_bar=True)
@@ -247,7 +249,7 @@ class UNetAlzheimer3D(pl.LightningModule):
 
         # Log the Training Confusion Matrix Image into WandB
         print(f"-- Logging Training Confusion Matrix of the epoch {self.current_epoch} --")
-        cm = self.train_disease_confusion_matrix.compute()#.numpy(); # print(cm)
+        cm = self.train_disease_confusion_matrix.compute()
         cm = cm.cpu().detach().numpy()
         plot_confusion_matrix(cm=cm, out_class=["CN", "MCI", "AD"],
                               cmap="Blues", title=f"Training Confusion Matrix Epoch {self.current_epoch}",
@@ -258,7 +260,7 @@ class UNetAlzheimer3D(pl.LightningModule):
         
         # Log the Validation Confusion Matrix Image into WandB
         print(f"-- Logging Validation Confusion Matrix of the epoch {self.current_epoch} --")
-        cm = self.valid_disease_confusion_matrix.compute()#.numpy(); # print(cm)
+        cm = self.valid_disease_confusion_matrix.compute()
         cm = cm.cpu().detach().numpy()
         plot_confusion_matrix(cm=cm, out_class=["CN", "MCI", "AD"],
                               cmap="Reds", title=f"Validation Confusion Matrix Epoch {self.current_epoch}",
@@ -287,7 +289,7 @@ class UNetAlzheimer3D(pl.LightningModule):
         sex = batch["Sex"]
         age = batch["Age"]
 
-        output_pred, brain_features_3, brain_features_2, brain_features_1 = self(input_img, sex=sex, age=age)
+        output_pred, _, _, _ = self(input_img, sex=sex, age=age)
 
         # Disease Classification
         output_pred = output_pred.squeeze()
@@ -307,7 +309,7 @@ class UNetAlzheimer3D(pl.LightningModule):
     def on_test_epoch_end(self):
         cm_save_path = os.path.join(cm_path, f"{self.trainer.model_type}/{self.trainer.wandb_id}")
         os.makedirs(cm_save_path, exist_ok=True)
-        cm = self.test_disease_confusion_matrix.compute()#.numpy()
+        cm = self.test_disease_confusion_matrix.compute()
         cm = cm.cpu().detach().numpy()
         plot_confusion_matrix(cm=cm, out_class=["CN", "MCI", "AD"],
                                 cmap="Greens", title=f"Test Confusion Matrix Epoch {self.current_epoch}",

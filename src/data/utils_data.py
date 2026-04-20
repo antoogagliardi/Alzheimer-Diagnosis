@@ -18,14 +18,12 @@ from src.utils.utils import classes_weigths_creation
 
 
 
-# Il paper suggerisce come dimensione [64, 104, 80]
-    # io ho usato come dimensione [80, 100, 80]
 class MRIDataset(Dataset):
     def __init__(self, metadata_json:str=None, img_zize:list=[181,217,181]):
         if metadata_json == None: print("You're not providing a path to JSON Metadata File")
         else:
             self.dataset = []
-            self.levelDisease = {'CN':0, 'MCI':1, 'AD':2} # Chiave numerica e non stringa per la NN
+            self.levelDisease = {'CN':0, 'MCI':1, 'AD':2}
             self.whitening = False
 
             self.create(metadata_json, img_zize)
@@ -54,13 +52,14 @@ class MRIDataset(Dataset):
                         if self.whitening == True:
                             otsu = filters.threshold_otsu(norm_img)
                             otsu_img = norm_img > otsu
-                            img = resize_image_with_crop_or_pad(image=otsu_img, img_size=img_size, mode='edge') # Crop or Pad
-                        else: img = resize_image_with_crop_or_pad(image=norm_img, img_size=img_size, mode='edge') # Crop or Pad
+                            img = resize_image_with_crop_or_pad(image=otsu_img, img_size=img_size, mode='edge')     # Crop or Pad
+                        else: img = resize_image_with_crop_or_pad(image=norm_img, img_size=img_size, mode='edge')   # Crop or Pad
 
                         if img.size == 0: print("Error: There's an empty image container")
                         
                         # Add dimention corresponding to "Channel"
-                        img = np.expand_dims(img, axis=0) # channel dimension (then accordingly with Conv3D input to NN would be ([batch],channels,depth,height,width)
+                        # channel dimension (then accordingly with Conv3D input to NN would be ([batch],channels,depth,height,width)
+                        img = np.expand_dims(img, axis=0)
 
                         try:
                             item = {}
@@ -70,17 +69,11 @@ class MRIDataset(Dataset):
                             item['Sex'] = [0] if val[j]["sex"] == 'M' else [1]
                             item['Visit'] = val[j]["date"]
                             item['ADType'] = list([0,0,0]); item['ADType'][self.levelDisease[val[j]['group']]] = 1
-                            item['Image'] = img # casted_img #img
+                            item['Image'] = img
 
-                            # if not any(diz['idImage'] == img_id and diz['Subject'] == p for diz in self.dataset): 
                             self.dataset.append(item)
                             pbar.set_postfix(FILE= key)
                             pbar.update()
-                            # else:
-                            #    # print('item with idImage {} related to visit {} is already in the dataset'.format(item['idImage'],item['Visit']))
-                            #    pbar.set_postfix(FILE=re.split("/", fileName)[-1],
-                            #                    MSG=f"Item: (idImage:{item['idImage']}, visit:{item['Visit']}) is already in the Dataset")
-                            #    pbar.update(0)
                         except: print("Error: It has occurred an error while creating the dataset")
            
     def __len__(self):
@@ -114,7 +107,6 @@ class MRIDataModule(pl.LightningDataModule):
                 plot_class_frequency(val_freq)
                 self.validation_class_weigths = classes_weigths_creation(length_data=val_samples,
                                                                         class_freq=scaled_val_freq)
-                ###########################################
             else: print("No Valid Dataset found")
 
             if f'testDataset.db' in os.listdir(saved_db_folder):
@@ -163,7 +155,6 @@ class MRIDataModule(pl.LightningDataModule):
         age = torch.LongTensor([int(sample["Age"]) for sample in samples])
         disease_status = torch.LongTensor([sample["ADType"] for sample in samples])
         
-        # return mri_image, sex, age, disease_status
         return {"Image": mri_image, "Sex": sex, "Age": age, "Disease": disease_status}
     
     def train_dataloader(self):
@@ -181,6 +172,7 @@ class MRIDataModule(pl.LightningDataModule):
                                       drop_last=True if self.drop_last_batch == True else False)
         print(" - Validation DataLoader Ready")
         return valid_dataloader
+    
     def test_dataloader(self):
         print("-- Preparing DataLoader for the test set --")
         test_dataloader = DataLoader(self.test_dataset, batch_size=self.batch_size,

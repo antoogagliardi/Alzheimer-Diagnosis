@@ -125,7 +125,7 @@ def process_nii_image(nii_img):
 
 
 def image_PreProcessing(path:str, lst:list):
-    if os.path.isfile(path) and ".nii" in path: # Base case: I've reached the file itself
+    if os.path.isfile(path) and ".nii" in path:                 # Base case: I've reached the file itself
         id_img = re.split("/", os.path.abspath(path))[-2]
         id_patient = re.split("/", os.path.abspath(path))[-5]
         visit_date = re.findall(r"([0-9]+-[0-9]+-[0-9]+)", re.split("/", os.path.abspath(path))[-3])[0]
@@ -135,7 +135,7 @@ def image_PreProcessing(path:str, lst:list):
         for tup in lst:
             if tup[:2] == (id_patient, visit_date): already_in_lst=True; break
         if already_in_lst==False:
-            lst.append((id_patient, visit_date, id_img, path)); print(path) # We take into account just scaled .nii files
+            lst.append((id_patient, visit_date, id_img, path)); print(path) # Take into account just scaled .nii files
 
             # Perform the Skull-Removal Procedure on the Image
             process_nii_image(path)
@@ -144,7 +144,7 @@ def image_PreProcessing(path:str, lst:list):
         return lst
     else:
         sub_dir=sorted(os.listdir(path)) #; print(sub_dir)
-        if ".DS_Store" in sub_dir: sub_dir.remove(".DS_Store") ## Avoiding hidden files in MAC OS
+        if ".DS_Store" in sub_dir: sub_dir.remove(".DS_Store")          ## Avoiding hidden files in MAC OS
         for dir in sub_dir:
             # print(dir)
             if ".csv" in dir: continue
@@ -155,9 +155,9 @@ def image_PreProcessing(path:str, lst:list):
 """ 
     Eventually perform Skull Removal on MRI Images
         ----  PRE-PROCESSED ADNI MRI DATASET  ----
-    (X) /Users/anto/Jupyter/EAI_Napoli/datasets/ADNI1-Screening_1.5T
-    (X) /Users/anto/Jupyter/EAI_Napoli/datasets/ADNI1-Complete_1Yr_1.5T
-    (X) /Users/anto/Jupyter/EAI_Napoli/datasets/ADNI1-Complete_2Yr_1.5T
-    (X) /Users/anto/Jupyter/EAI_Napoli/datasets/ADNI1-Complete_3Yr_1.5T
+    (X) ./datasets/ADNI1-Screening_1.5T
+    (X) ./datasets/ADNI1-Complete_1Yr_1.5T
+    (X) ./datasets/ADNI1-Complete_2Yr_1.5T
+    (X) ./datasets/ADNI1-Complete_3Yr_1.5T
 """
-# print(image_PreProcessing("/Users/anto/Jupyter/EAI_Napoli/datasets/ADNI1-Complete_3Yr_1.5T",[]))
+# print(image_PreProcessing("./datasets/ADNI1-Complete_3Yr_1.5T",[]))

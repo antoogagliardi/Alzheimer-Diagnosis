@@ -11,12 +11,6 @@ def compute_class_frequency(dataset):
     counter_MCI = 0
     counter_AD = 0
     for entry in dataset:
-        # if entry["ADType"].item() == 0:
-        #     counter_CN += 1
-        # if entry["ADType"].item() == 1:
-        #     counter_MCI += 1
-        # if entry["ADType"].item() == 2:
-        #     counter_AD += 1
         if entry["ADType"][0] == 1:
             counter_CN += 1
         if entry["ADType"][1] == 1:
@@ -24,9 +18,9 @@ def compute_class_frequency(dataset):
         if entry["ADType"][2] == 1:
             counter_AD += 1
             
-    total_samples = counter_CN+counter_MCI+counter_AD #; print(f"Total Sample: {total_samples}")
-    frequencies = [counter_CN, counter_MCI, counter_AD] #; print(f"Frequencies: {frequencies}")
-    scaled_frequencies = [freq/total_samples for freq in frequencies] #; print(f"Scaled Frequencies: {scaled_frequencies}")
+    total_samples = counter_CN+counter_MCI+counter_AD                   #; print(f"Total Sample: {total_samples}")
+    frequencies = [counter_CN, counter_MCI, counter_AD]                 #; print(f"Frequencies: {frequencies}")
+    scaled_frequencies = [freq/total_samples for freq in frequencies]   #; print(f"Scaled Frequencies: {scaled_frequencies}")
     
     return total_samples, frequencies, scaled_frequencies
 
@@ -113,8 +107,8 @@ def plot_features_in_the_batch(batch_tensor:torch.Tensor, samples:int=2, verbose
             fig, axes = plt.subplots(1, 3, figsize=(20, 3))
             
             axial = batch_sample[i].detach().cpu().numpy()[:, :, batch_sample[i].shape[2]//2]
-            coronal = np.rot90(batch_sample[i].detach().cpu().numpy()[:, batch_sample[i].shape[1]//2, :], k=-1) # counter-clockwise
-            sagittal = np.rot90(batch_sample[i].detach().cpu().numpy()[batch_sample[i].shape[0]//2, :, :], k=-1) # counter-clockwise
+            coronal = np.rot90(batch_sample[i].detach().cpu().numpy()[:, batch_sample[i].shape[1]//2, :], k=-1)     # counter-clockwise
+            sagittal = np.rot90(batch_sample[i].detach().cpu().numpy()[batch_sample[i].shape[0]//2, :, :], k=-1)    # counter-clockwise
             print("Batch Example Shape: ", batch_sample[i].shape)
             # Plot the data on each subplot
             im_0 = axes[0].imshow(axial, cmap=color_map)
