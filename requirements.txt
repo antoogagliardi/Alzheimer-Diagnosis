@@ -1,0 +1,13 @@
+matplotlib
+numpy
+pandas
+pillow
+tqdm
+wandb
+sh
+torch
+lightning
+torchmetrics
+nipype
+SimpleITK
+dltk
